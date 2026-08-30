@@ -1,0 +1,13 @@
+{
+  "commit": {
+    "commit": "1c2d53ab18a3f2dad7f56f3e53abc632ef61bbb4",
+    "author": "giovsaraceno <giovanni.saraceno92@gmail.com>",
+    "time": "2026-05-03T14:21:43Z",
+    "files": 10,
+    "merge": false,
+    "message": "update tests\n\nAdd 'skip_on_cran()' command for reducing the checktime on cran.\n"
+  },
+  "repo": "https://github.com/ropensci/QuadratiK",
+  "pkg": "QuadratiK",
+  "time": "2026-08-30T08:13:59Z"
+}
