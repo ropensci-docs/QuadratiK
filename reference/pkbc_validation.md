@@ -1,0 +1,131 @@
+# Validation of Poisson kernel-based clustering results
+
+Method for objects of class `pkbc` which computes evaluation measures
+for clustering results. The following evaluation measures are computed:
+In-Group Proportion (Kapp and Tibshirani (2007)). If true label are
+provided, ARI, Average Silhouette Width (Rousseeuw (1987)),
+Macro-Precision and Macro-Recall are computed.
+
+## Usage
+
+``` r
+pkbc_validation(object, true_label = NULL)
+```
+
+## Arguments
+
+- object:
+
+  Object of class `pkbc`
+
+- true_label:
+
+  factor or vector of true membership to clusters (if available). It
+  must have the same length of final memberships.
+
+## Value
+
+List with the following components:
+
+- `metrics` Table of computed evaluation measures for each value of
+  number of clusters in the `pkbc` object. The number of cluster is
+  indicated as column name.
+
+- `IGP` List of in-group proportions for each value of number of
+  clusters specified.
+
+## Details
+
+The IGP is a statistical measure that quantifies the proportion of
+observations within a group that belong to the same predefined category
+or class. It is often used to assess the homogeneity of a group by
+evaluating how many of its members share the same label. A higher IGP
+indicates that the group is more cohesive, while a lower proportion
+suggests greater diversity or misclassification within the group (Kapp
+and Tibshirani 2007).
+
+The Adjusted Rand Index (ARI) is a statistical measure used in data
+clustering analysis. It quantifies the similarity between two partitions
+of a dataset by comparing the assignments of data points to clusters.
+The ARI value ranges from 0 to 1, where a value of 1 indicates a perfect
+match between the partitions and a value close to 0 indicates a random
+assignment of data points to clusters.
+
+The average silhouette width quantifies the quality of clustering by
+measuring how well each object fits within its assigned cluster. It is
+the mean of silhouette values, which compare the tightness of an object
+within its cluster to its separation from other clusters. Higher values
+indicate well-separated, cohesive clusters, making it useful for
+selecting the *appropriate* number of clusters (Rousseeuw 1987).
+
+Macro Precision is a metric used in multi-class classification that
+calculates the precision for each class independently and then takes the
+average of these values. Precision for a class is defined as the
+proportion of true positive predictions out of all predictions made for
+that class.
+
+Macro Recall is similar to Macro Precision but focuses on recall. Recall
+for a class is the proportion of true positive predictions out of all
+actual instances of that class. Macro Recall is the average of the
+recall values computed for each class.
+
+## Note
+
+Note that Macro Precision and Macro Recall depend on the assigned
+labels, while the ARI measures the similarity between partition up to
+label switching.
+
+If the required packages (`mclust` for ARI, `clusterRepro` for IGP, and
+`cluster` for ASW) are not installed, the function will display a
+message asking the user to install the missing package(s).
+
+## References
+
+Kapp, A.V. and Tibshirani, R. (2007) "Are clusters found in one dataset
+present in another dataset?", Biostatistics, 8(1), 9–31,
+https://doi.org/10.1093/biostatistics/kxj029
+
+Rousseeuw, P.J. (1987) Silhouettes: A graphical aid to the
+interpretation and validation of cluster analysis. Journal of
+Computational and Applied Mathematics, 20, 53–65.
+
+## See also
+
+[`pkbc()`](https://docs.ropensci.org/QuadratiK/reference/pkbc.md) for
+the clustering algorithm.
+
+## Examples
+
+``` r
+#We generate three samples of 100 observations from 3-dimensional
+#Poisson kernel-based densities with rho=0.8 and different mean directions
+
+size <- 20
+groups <- c(rep(1, size), rep(2, size), rep(3, size))
+rho <- 0.8
+set.seed(081423)
+data1 <- rpkb(size, c(1,0,0), rho, method = 'rejvmf')
+data2 <- rpkb(size, c(0,1,0), rho, method = 'rejvmf')
+data3 <- rpkb(size, c(1,0,0), rho, method = 'rejvmf')
+data <- rbind(data1, data2, data3)
+
+#Perform the clustering algorithm
+pkbc_res <- pkbc(data, 3)
+pkbc_validation(pkbc_res)
+#> $metrics
+#>              3
+#> ASW 0.03602451
+#> 
+#> $IGP
+#> $IGP[[1]]
+#> NULL
+#> 
+#> $IGP[[2]]
+#> NULL
+#> 
+#> $IGP[[3]]
+#> [1] 0.952381 1.000000 1.000000
+#> 
+#> 
+
+```
