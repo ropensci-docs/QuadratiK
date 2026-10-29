@@ -1,0 +1,145 @@
+# Random sampling from the Poisson kernel-based density
+
+``` r
+
+library(QuadratiK)
+```
+
+In this example, we generate observations from the Poisson kernel-based
+distribution on the sphere, $`S^{d-1}`$. Given a vector
+$`\mathbf{\mu} \in \mathcal{S}^{d-1}`$, where $`\mathcal{S}^{d-1}=
+\{x \in \mathbb{R}^d : ||x|| = 1\}`$, and a parameter $`\rho`$ such that
+$`0 < \rho < 1`$, the probability density function of a $`d`$-variate
+Poisson kernel-based density is defined by:
+
+``` math
+f(\mathbf{x}|\rho, \mathbf{\mu}) = \frac{1-\rho^2}{\omega_d 
+||\mathbf{x} - \rho \mathbf{\mu}||^d},
+```
+
+where $`\mu`$ is a vector orienting the center of the distribution,
+$`\rho`$ is a parameter to control the concentration of the distribution
+around the vector $`\mu`$, and it is related to the variance of the
+distribution. Furthermore, $`\omega_d =2\pi^{d/2} [\Gamma(d/2)]^{-1}`$
+is the surface area of the unit sphere in $`\mathbb{R}^d`$ (see Golzy
+and Markatou, 2020). When $`\rho \to 0`$, the Poisson kernel-based
+density tends to the uniform density on the sphere. Connection of the
+PKBDs to other distributions are discussed in detail in Golzy and
+Markatou (2020).
+
+We consider mean direction $`\mu=(0,0,1)`$, $`d=3`$ and the
+concentration parameter is $`\rho = 0.8`$.
+
+``` r
+
+mu <- c(0, 0, 1)
+d <- 3
+n <- 1000
+rho <- 0.8
+```
+
+We sampled $`n=1000`$ observations for each method available. Golzy and
+Markatou (2020) proposed an acceptance-rejection method for simulating
+data from a PKBD using von Mises-Fisher envelopes (`rejvmf` method).
+Furthermore, Sablica, Hornik, and Leydold (2023) proposed new ways for
+simulating from the PKBD, using angular central Gaussian envelopes
+(`rejacg`) or using the projected Saw distributions (`rejpsaw`).
+
+``` r
+
+set.seed(2468)
+# Generate observations using the rejection algorithm with von-Mises 
+# distribution envelopes
+dat1 <- rpkb(n = n, rho = rho, mu = mu, method = "rejvmf")
+# Generate observations using the rejection algorithm with angular central 
+# Gaussian distribution envelopes
+dat2 <- rpkb(n = n, rho = rho, mu = mu, method = "rejacg")
+# Generate observations using the projected Saw distribution
+dat3 <- rpkb(n = n, rho = rho, mu = mu, method = "rejpsaw")
+```
+
+The number of observations generated is determined by `n` for
+[`rpkb()`](https://docs.ropensci.org/QuadratiK/reference/dpkb.md). This
+function returns the matrix of generated observations `x`. We create a
+unique data set.
+
+``` r
+
+x <- rbind(dat1, dat2, dat3)
+```
+
+Finally, the observations generated through the different methods are
+compared graphically, by displaying the data points on the sphere
+colored with respect to the used method.
+
+``` r
+
+library(rgl)
+```
+
+    ## Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display
+
+    ## Warning: 'rgl.init' failed, will use the null device.
+    ## See '?rgl.useNULL' for ways to avoid this warning.
+
+``` r
+
+# Legend information
+classes <- c("rejvmf", "rejacg", "rejpsaw")
+# Fix a color for each method
+colors <- c("red", "blue", "green")
+labels <- factor(rep(colors, each = 1000))
+# Element needed for the Legend position in the following plot
+offset <- 0.25
+# Coordinates for legend placement
+legend_x <- max(x[,1]) + offset  
+legend_y <- max(x[,2]) + offset
+legend_z <- seq(min(x[,3]), length.out = length(classes), by = offset)
+
+open3d()
+```
+
+    ## null 
+    ##    1
+
+``` r
+
+# Create the legend
+for (i in seq_along(classes)) {
+   text3d(legend_x, legend_y, legend_z[i], texts = classes[i], adj = c(0, 0.5))
+   points3d(legend_x-0.1, legend_y, legend_z[i], col = colors[i], size = 5)
+}
+title3d("", line = 3, cex = 1.5, font = 2, add = TRUE)
+# Plot the sampled observations colored with respect to the used method
+plot3d(x[,1], x[,2], x[,3], col = labels, size = 5, add = TRUE)
+title3d("", line = 3, cex = 1.5, font = 2, add = TRUE)
+# Add a Sphere as background
+rgl.spheres(0 , col = "transparent", alpha = 0.2)
+# Rotate and zoom the generated 3 dimensional plot to facilitate visualization
+view3d(theta = 10, phi = -25, zoom = 0.5)
+# rglwidget is added in order to display the generated figure into the html 
+# replication file.
+rglwidget()
+```
+
+``` r
+
+close3d()
+```
+
+### Note
+
+A limitation of the `rejvmf` method is that it does not ensure the
+computational feasibility of the sampler for $`\rho`$ approaching 1.
+
+## References
+
+Golzy, M. and Markatou, M. (2020). Poisson Kernel-Based Clustering on
+the Sphere: Convergence Properties, Identifiability, and a Method of
+Sampling, *Journal of Computational and Graphical Statistics*, 29(4),
+758-770. [DOI:
+10.1080/10618600.2020.1740713](https://doi.org/10.1080/10618600.2020.1740713).
+
+Sablica, L., Hornik, K. and Leydold, J. (2023). “Efficient sampling from
+the PKBD distribution”, *Electronic Journal of Statistics*, 17(2),
+2180-2209. [DOI: 10.1214/23-EJS2149](https://doi.org/10.1214/23-EJS2149)
